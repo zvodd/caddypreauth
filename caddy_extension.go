@@ -28,7 +28,7 @@ type PathAuth struct {
 // CaddyModule returns the Caddy module information
 func (PathAuth) CaddyModule() caddy.ModuleInfo {
 	return caddy.ModuleInfo{
-		ID:  "http.handlers.path_auth",
+		ID:  "http.handlers.pathauth",
 		New: func() caddy.Module { return new(PathAuth) },
 	}
 }
@@ -180,7 +180,7 @@ var (
 // Register the module with Caddy
 func init() {
 	caddy.RegisterModule(PathAuth{})
-	httpcaddyfile.RegisterHandlerDirective("path_auth", func(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
+	httpcaddyfile.RegisterHandlerDirective("pathauth", func(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
 		var p PathAuth
 		err := p.UnmarshalCaddyfile(h.Dispenser)
 		return &p, err
