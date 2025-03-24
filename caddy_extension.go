@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/caddyserver/caddy/v2"
+	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
+	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/gobwas/glob"
 )
@@ -150,5 +152,37 @@ func decryptPayload(encrypted string, key []byte) (Payload, error) {
 	return payload, nil
 }
 
-// Interface guard
-var _ caddyhttp.MiddlewareHandler = (*PathAuth)(nil)
+// UnmarshalCaddyfile parses the Caddyfile configuration.
+func (p *PathAuth) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
+	for d.Next() {
+		if d.NextArg() {
+			switch d.Val() {
+			case "key":
+				if !d.NextArg() {
+					return d.ArgErr()
+				}
+				p.Key = d.Val()
+			default:
+				return d.Errf("unrecognized subdirective: %s", d.Val())
+			}
+		}
+	}
+	return nil
+}
+
+// Interface guards to ensure compliance
+var (
+	_ caddy.Provisioner           = (*PathAuth)(nil)
+	_ caddyhttp.MiddlewareHandler = (*PathAuth)(nil)
+	_ caddyfile.Unmarshaler       = (*PathAuth)(nil)
+)
+
+// Register the module with Caddy
+func init() {
+	caddy.RegisterModule(PathAuth{})
+	httpcaddyfile.RegisterHandlerDirective("path_auth", func(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
+		var p PathAuth
+		err := p.UnmarshalCaddyfile(h.Dispenser)
+		return &p, err
+	})
+}
